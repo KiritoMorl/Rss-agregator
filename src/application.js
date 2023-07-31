@@ -12,7 +12,6 @@ const getAllOriginsResponse = (url) => {
   const workingUrl = new URL(allOriginsLink);
   workingUrl.searchParams.set('disableCache', 'true');
   workingUrl.searchParams.set('url', url);
-
   return axios.get(workingUrl);
 };
 
@@ -25,6 +24,51 @@ let postsCount = -1;
 const takeNewPostId = (post) => {
   postsCount += 1;
   post.id = postsCount;
+};
+
+const setAutoUpdade = (feedId, state, elements, timeout = 5000) => {
+  const feed = state.feeds.find(({ id }) => feedId === id);
+  const inner = () => getAllOriginsResponse(feed.link)
+    .then((response) => {
+      const responseData = response.data.contents;
+      return Promise.resolve(responseData);
+    })
+    .then((responseData) => parser(responseData))
+    .then((parsedRSS) => {
+      const posts = parsedRSS.querySelectorAll('item');
+      const postsUrls = state.posts
+        .filter((post) => feedId === post.feedId)
+        .map(({ link }) => link);
+      const newItems = [];
+      posts.forEach((post) => {
+        if (postsUrls.includes(post.querySelector('link').textContent)) {
+          return;
+        }
+        newItems.push(post);
+      });
+      if (newItems.length > 0) {
+        newItems.forEach((post) => {
+          const title = post.querySelector('title').textContent;
+          const description = post.querySelector('description').textContent;
+          const link = post.querySelector('link').textContent;
+          const somePost = {
+            id: 0,
+            title,
+            description,
+            link,
+            feedId,
+          };
+          takeNewPostId(somePost);
+          elements.postsColumn.innerHTML = '';
+          state.posts.push(somePost);
+        });
+      }
+    })
+    .catch(console.log)
+    .finally(() => {
+      setTimeout(inner, timeout);
+    });
+  setTimeout(inner, timeout);
 };
 
 export default async () => {
@@ -48,6 +92,7 @@ export default async () => {
     },
     feeds: [],
     posts: [],
+    openedPosts: [],
   };
 
   const i18n = i18next.createInstance();
@@ -91,6 +136,14 @@ export default async () => {
       .then((body) => {
         const parsedContent = parser(body.data.contents);
         const posts = parsedContent.querySelectorAll('item');
+
+        const feed = {
+          id: 0,
+          link: state.form.fields.url,
+          description: parsedContent.querySelector('title').textContent,
+          title: parsedContent.querySelector('description').textContent,
+        };
+        takeNewFeedId(feed);
         posts.forEach((post) => {
           const title = post.querySelector('title').textContent;
           const description = post.querySelector('description').textContent;
@@ -100,25 +153,17 @@ export default async () => {
             title,
             description,
             link,
+            feedId: feed.id,
           };
           takeNewPostId(somePost);
-          console.log(somePost);
+          // console.log(somePost);
           elements.postsColumn.innerHTML = '';
           state.posts.push(somePost);
         });
-        //console.log(posts)
-        // console.log(parsedContent.querySelector('title').textContent)
-        const feed = {
-          id: 0,
-          link: state.form.fields.url,
-          description: parsedContent.querySelector('title').textContent,
-          title: parsedContent.querySelector('description').textContent,
-        };
-        takeNewFeedId(feed);
-        //console.log(parsedContent);
         elements.feedsColumn.innerHTML = '';
         state.feeds.push(feed);
-        console.log(getFeedUrls);
+        setAutoUpdade(feed.id, state, elements);
+        // console.log(getFeedUrls);
         state.form.fields.url = '';
         state.form.error = '';
       })
@@ -134,5 +179,19 @@ export default async () => {
 
   elements.urlInput.addEventListener('change', (e) => {
     state.form.fields.url = e.target.value.trim();
+  });
+  elements.postsColumn.addEventListener('click', (e) => {
+    if (e.target.dataset.bsTarget === '#modal') {
+      const modalHeader = document.querySelector('.modal-title');
+      const modalBody = document.querySelector('.modal-body');
+      const postId = parseInt(e.target.dataset.id, 10);
+      const targetPost = state.posts.find(({ id }) => postId === id);
+      state.openedPosts.push(targetPost.id);
+      modalHeader.textContent = targetPost.title;
+      modalBody.textContent = targetPost.description;
+      const title = e.target.previousElementSibling;
+      title.classList.remove('fw-bold');
+      title.classList.add('fw-normal');
+    }
   });
 };
