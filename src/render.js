@@ -1,7 +1,4 @@
-import { popperOffsets } from "@popperjs/core";
-
- 
-const createPosts =(elements, posts) => {
+const createPosts = (elements, posts, state) => {
   const cardBorder = document.createElement('div');
   cardBorder.classList.add('card', 'border-0');
   const cardBody = document.createElement('div');
@@ -19,6 +16,14 @@ const createPosts =(elements, posts) => {
     li.classList.add('list-group-item', 'border-0', 'border-end-0', 'd-flex', 'justify-content-between', 'align-items-start');
     const a = document.createElement('a');
     li.append(a);
+    if (state.openedPosts.includes(post.id)) {
+      a.outerHTML = `<a href="${post.link}" data-id="${post.id}" class="fw-normal" target="_blank" rel="noopener noreferrer">${post.title}</a>`;
+      const button = document.createElement('button');
+      li.append(button);
+      button.outerHTML = `<button type="button" data-id="${post.id}" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal">Просмотр</button>`;
+      ul.prepend(li);
+      return;
+    }
     a.outerHTML = `<a href="${post.link}" data-id="${post.id}" class="fw-bold" target="_blank" rel="noopener noreferrer">${post.title}</a>`;
     const button = document.createElement('button');
     li.append(button);
@@ -101,6 +106,6 @@ export default (elements, state, i18n) => (path, value) => {
     createFeeds(elements, state.feeds);
   }
   if (path === 'posts') {
-    createPosts(elements, state.posts);
+    createPosts(elements, state.posts, state);
   }
 };
