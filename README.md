@@ -5,9 +5,9 @@
 ### RSS-agregator
 ____
 RSS feeds are an easy way to keep track of new content from various sources like news websites, blogs or forums.
+***
 RSS Aggregator is a simple, easy-to-use, minimalist web application that puts all your RSS feeds in one place.
-
-![screenshot of sample](https://drive.google.com/file/d/1zJiPN5ng7VGEXWZDRjhpOXdPSgRaIZxZ/view?usp=sharing)
+***
 [View demo](https://frontend-project-11-lake-xi.vercel.app/)
 
 ### Setup
