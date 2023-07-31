@@ -134,7 +134,6 @@ export default async () => {
         state.form.status = 'sending';
         return getAllOriginsResponse(state.form.fields.url);
       })
-
       .then((body) => {
         const parsedContent = parser(body.data.contents);
         const posts = parsedContent.querySelectorAll('item');
@@ -176,6 +175,10 @@ export default async () => {
         if (message === null) {
           message = 'noRSS';
         }
+        if (message === 'Network Error') {
+          message = 'networkError';
+        }
+        // console.log(message)
         state.form.error = message;
       })
       .finally(() => {
