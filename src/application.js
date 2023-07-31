@@ -134,7 +134,7 @@ export default async () => {
         state.form.status = 'sending';
         return getAllOriginsResponse(state.form.fields.url);
       })
-      .catch(() => Promise.reject(new Error('networkError')))
+
       .then((body) => {
         const parsedContent = parser(body.data.contents);
         const posts = parsedContent.querySelectorAll('item');
@@ -172,7 +172,7 @@ export default async () => {
       .catch((error) => {
         const message = error.message ?? 'default';
         state.form.error = message;
-        // console.log(message)
+      //   console.log(message)
       })
       .finally(() => {
         state.form.status = 'filling';
