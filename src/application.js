@@ -138,7 +138,11 @@ export default async () => {
       .then((body) => {
         const parsedContent = parser(body.data.contents);
         const posts = parsedContent.querySelectorAll('item');
-
+        if (posts.length === 0) {
+          state.form.error = 'noRSS';
+          return;
+        }
+        console.log(posts);
         const feed = {
           id: 0,
           link: state.form.fields.url,
@@ -158,21 +162,21 @@ export default async () => {
             feedId: feed.id,
           };
           takeNewPostId(somePost);
-          // console.log(somePost);
           elements.postsColumn.innerHTML = '';
           state.posts.push(somePost);
         });
         elements.feedsColumn.innerHTML = '';
         state.feeds.push(feed);
         setAutoUpdade(feed.id, state, elements);
-        // console.log(getFeedUrls);
         state.form.fields.url = '';
         state.form.error = '';
       })
       .catch((error) => {
-        const message = error.message ?? 'default';
+        let message = error.message ?? 'default';
+        if (message === null) {
+          message = 'noRSS';
+        }
         state.form.error = message;
-      //   console.log(message)
       })
       .finally(() => {
         state.form.status = 'filling';
