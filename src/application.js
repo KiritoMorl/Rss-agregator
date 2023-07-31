@@ -29,6 +29,7 @@ const takeNewPostId = (post) => {
 const setAutoUpdade = (feedId, state, elements, timeout = 5000) => {
   const feed = state.feeds.find(({ id }) => feedId === id);
   const inner = () => getAllOriginsResponse(feed.link)
+    .catch(() => Promise.reject(new Error('networkError')))
     .then((response) => {
       const responseData = response.data.contents;
       return Promise.resolve(responseData);
@@ -133,6 +134,7 @@ export default async () => {
         state.form.status = 'sending';
         return getAllOriginsResponse(state.form.fields.url);
       })
+      .catch(() => Promise.reject(new Error('networkError')))
       .then((body) => {
         const parsedContent = parser(body.data.contents);
         const posts = parsedContent.querySelectorAll('item');
